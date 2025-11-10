@@ -1,11 +1,32 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated, getSpotifyAuthUrl } from '@/lib/auth';
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Si ya está autenticado, redirigir al dashboard
+    if (isAuthenticated()) {
+      router.push('/dashboard');
+    }
+  }, [router]);
+
+  const handleLogin = () => {
+    window.location.href = getSpotifyAuthUrl();
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-            <h1>Spotity Taste Mixer</h1>
-      </main>
-    </div>
+      <>
+        🎵 Spotify Taste Mixer
+        Crea playlists personalizadas con tus preferencias musicales
+        
+          Iniciar sesión con Spotify
+      </>  
+      
   );
 }
+
+
