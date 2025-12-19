@@ -19,25 +19,49 @@ export default function CallbackPage() {
     const errorParam = searchParams.get('error');
 
     if (errorParam) {
-      setError('Autenticación cancelada');
+      setError('Authentication cancelled');
       return;
     }
 
     if (!code) {
-      setError('No se recibió código de autorización');
+      setError('Authorization code not received');
       return;
     }
 
     // Validar state para prevenir CSRF
-    const savedState = localStorage.getItem('spotify_auth_state');
-    if (!state || state !== savedState) {
-      setError('Error de validación de seguridad (CSRF). Intenta iniciar sesión de nuevo.');
-      localStorageStorage.removeItem('spotify_auth_state');
+    const savedState = sessionStorage.getItem('spotify_auth_state');
+    
+    // Debug: show validation information
+    console.log('🔍 Validating CSRF state...');
+    console.log('State received from Spotify:', state ? state.substring(0, 8) + '...' : 'null');
+    console.log('Saved state:', savedState ? savedState.substring(0, 8) + '...' : 'null');
+    
+    if (!state) {
+      console.error('No state received in URL');
+      setError('Error: Security parameter not received. Please try logging in again.');
+      sessionStorage.removeItem('spotify_auth_state');
       return;
     }
+    
+    if (!savedState) {
+      console.error('No saved state found in sessionStorage');
+      setError('Error: Session expired. Please try logging in again.');
+      return;
+    }
+    
+    if (state !== savedState) {
+      console.error('State mismatch!');
+      console.error('Received:', state);
+      console.error('Expected:', savedState);
+      setError('Security validation error (CSRF). Please try logging in again.');
+      sessionStorage.removeItem('spotify_auth_state');
+      return;
+    }
+    
+    console.log('CSRF validation successful');
 
     // Limpiar state después de validar
-    localStorage.removeItem('spotify_auth_state');
+    sessionStorage.removeItem('spotify_auth_state');
 
     // Marcar como procesado
     hasProcessed.current = true;
@@ -54,7 +78,7 @@ export default function CallbackPage() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Error al obtener token');
+          throw new Error(data.error || 'Error obtaining token');
         }
 
         // Guardar tokens
@@ -82,7 +106,7 @@ export default function CallbackPage() {
             onClick={() => router.push('/')}
             className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
           >
-            Volver al inicio
+            Back to home
           </button>
         </div>
       </div>
@@ -93,7 +117,7 @@ export default function CallbackPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-        <p className="text-white text-xl">Autenticando...</p>
+        <p className="text-white text-xl">Authenticating...</p>
       </div>
     </div>
   );

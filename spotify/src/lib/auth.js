@@ -14,9 +14,10 @@ export function getSpotifyAuthUrl() {
   const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI || '';
   const state = generateRandomString(16);
 
-  // Guardar el state para validación posterior (prevenir CSRF)
+  // Save state for later validation (prevent CSRF)
+  // We use sessionStorage instead of localStorage for better security
   if (typeof window !== 'undefined') {
-    localStorage.setItem('spotify_auth_state', state);
+    sessionStorage.setItem('spotify_auth_state', state);
   }
 
   const scope = [
